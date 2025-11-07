@@ -86,7 +86,7 @@ section h3 {
 }
 
 .activity-card .participants ul {
-  list-style: disc inside;
+  list-style: none; /* hide bullet points */
   margin: 0;
   padding: 0;
   display: flex;
@@ -102,6 +102,23 @@ section h3 {
   font-size: 14px;
   color: #333;
   box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.delete-btn {
+  background: transparent;
+  border: none;
+  color: #c62828;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.delete-btn:hover {
+  background: rgba(198,40,40,0.08);
 }
 
 .activity-card .participants .empty {

@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const participantsHtml =
         a.participants && a.participants.length
-          ? `<ul>${a.participants.map((p) => `<li>${escape(p)}</li>`).join('')}</ul>`
+          ? `<ul>${a.participants.map((p) => `<li><span class="email">${escape(p)}</span> <button class="delete-btn" data-activity="${escape(name)}" data-email="${escape(p)}" aria-label="Unregister ${escape(p)}">🗑️</button></li>`).join('')}</ul>`
           : `<div class="empty">No participants yet.</div>`;
 
       const spotsHtml =
@@ -64,6 +64,40 @@ document.addEventListener('DOMContentLoaded', () => {
       activitySelect.appendChild(opt);
     });
   };
+
+  // Delegate click events for delete buttons (unregister participant)
+  activitiesList.addEventListener('click', (e) => {
+    const btn = e.target.closest('.delete-btn');
+    if (!btn) return;
+    const activity = btn.dataset.activity;
+    const email = btn.dataset.email;
+    if (!activity || !email) return;
+
+    // Optimistic UI: show message and perform request
+    showMessage(`Removing ${email} from ${activity}...`, 'info');
+
+    fetch(`/activities/${encodeURIComponent(activity)}/participants?email=${encodeURIComponent(email)}`, {
+      method: 'DELETE'
+    })
+      .then(async (res) => {
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(payload.detail || payload.message || 'Failed to unregister participant');
+        }
+        return payload;
+      })
+      .then((payload) => {
+        // update local model and re-render
+        if (activitiesData[activity] && Array.isArray(activitiesData[activity].participants)) {
+          activitiesData[activity].participants = activitiesData[activity].participants.filter((p) => p !== email);
+        }
+        renderActivities(activitiesData);
+        showMessage(payload.message || `${email} removed from ${activity}`, 'success');
+      })
+      .catch((err) => {
+        showMessage(err.message || 'Failed to unregister participant', 'error');
+      });
+  });
 
   fetch('/activities')
     .then((res) => {
